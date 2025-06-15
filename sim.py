@@ -5,7 +5,7 @@ import time
 # Parameters
 arrival_rate = 2.0  # lambda
 service_rate = 5.0  # mu
-simulation_time = 10  # Total simulation time
+simulation_time = 5  # Total simulation time
 load_balancer_buffer_size = 1000 #N
 
 # Set random seed for reproducibility
@@ -39,15 +39,17 @@ while current_time < simulation_time:
     if event_type == ARRIVAL:
         if counter_current_message_in_system < load_balancer_buffer_size:
             counter_current_message_in_system += 1
+
+            if not server_busy:
+                server_busy = True
+                service_time = random.expovariate(service_rate)
+                heapq.heappush(event_list, (current_time + service_time, DEPARTURE))
+            else:
+                queue.append(current_time)
+
         else:
             print("Load balancer buffer is full")
-            continue
-        if not server_busy:
-            server_busy = True
-            service_time = random.expovariate(service_rate)
-            heapq.heappush(event_list, (current_time + service_time, DEPARTURE))
-        else:
-            queue.append(current_time)
+            
         next_arrival = current_time + random.expovariate(arrival_rate)
         heapq.heappush(event_list, (next_arrival, ARRIVAL))
     elif event_type == DEPARTURE:
